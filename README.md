@@ -1,5 +1,8 @@
 # eth-roulette-for-blockchain-presentation
-Ethereum roulette implementation for blockchain presentation
+Ethereum blockchain roulette implementation using smart contracts and Web3.
+Prepared for blockchain presentation.
+
+![blockchain example](assets/example.png)
 
 To take part in game you will need metamask extension installed.
 
@@ -10,7 +13,7 @@ Connect metamask to Ropsten testnet.
 - Open MetaMask extension and click on the dropdown icon of the network name.
 - Select "Ropsten Test Network" as the current network.
 
-![MetaMask Ropsten](https://miro.medium.com/max/1400/1*Mc-iod46oj8Vg_k2Hj3JJA.png)
+![MetaMask Ropsten](assets/metamask.png)
 
 #Step 2
 
