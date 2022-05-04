@@ -39,10 +39,6 @@ async function initWeb3() {
   }
   web3 = new Web3(web3Provider);
 
-  web3.eth.getBlockNumber().then((result) => {
-    console.log("Latest Ethereum Block is ", result);
-  });
-
   if (window.ethereum) {
     try {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -59,10 +55,9 @@ async function initWeb3() {
     }
   }
 
-  web3.eth.getGasPrice().then((result) => {
-    console.log(result);
-    GAS_PRICE = result * 1.5;
-  });
+  // web3.eth.getGasPrice().then((result) => {
+  //   GAS_PRICE = result * 1.5;
+  // });
 
   initContract();
 
@@ -72,7 +67,7 @@ function initContract() {
   // get abi and deployed address
   $.getJSON('Roulette.json', (data) => {
 
-    let address = '0xFAdf6EE53975FDe814331B0DD3F328f659C3158C';// Ropsten
+    let address = '0x4c88Aa30965087a6792cCe2a7D0e7993840c29cA';// Ropsten
     //let address = '0x3e98C5eff32A700c43b30430c509F5Dd6AF4AD25'; //Mumbai
 
     // get contract instance
@@ -81,8 +76,7 @@ function initContract() {
     console.log(data);
 
     contract = new web3.eth.Contract(data.abi, address, {
-      from: account, // default from address
-      gasPrice: GAS_PRICE // default gas price in wei, 20 gwei in this case
+      from: account // default from address
     });
 
 
@@ -104,7 +98,7 @@ function initContract() {
 function initEventListeners() {
 
   contract.events.MadeBet({}, function (err, res) {
-    if (err) return void showError('error', err);
+    if (err) return void showError('Event listner error MadeBet', err);
 
     bet = { type: 5, value: parseInt(res.returnValues._value) , account: res.returnValues._from};
 
@@ -141,8 +135,6 @@ function initEventListeners() {
       /* calculate total degrees we need to rotate */
       var totalDegrees = (numRoundsBefore * 360) + numberDegree;
 
-      console.log(totalDegrees);
-
       /* rotate the wheel */
       document.getElementById("wheel").style.transform = "rotate(-" + totalDegrees + "deg)";
       /* save position to be able to reset the wheel next time */
@@ -159,6 +151,7 @@ function initEventListeners() {
 }
 
 function showError(msg, err) {
+  console.log(msg);
   console.log(err);
   const p = document.getElementById('errorPanel');
   p.innerText = msg;
@@ -186,7 +179,7 @@ function placeBet() {
 
   if (bet.hasOwnProperty('type') && bet.hasOwnProperty('value')) {
 
-    contract.methods.bet(bet.value).send({ from: account, value: BET_AMOUNT, gas: GAS, gasPrice: GAS_PRICE }, function (err, res) {
+    contract.methods.bet(bet.value).send({ value: BET_AMOUNT }, function (err, res) {
       if (err) {
         return void showError('not enough money in the bank', err);
       }
@@ -252,7 +245,7 @@ function updateHTML(value, elId) {
 /* call smart contract to get status and update UI */
 function getStatus() {
 
-  contract.methods.getStatus().call({ from: account, gas: GAS, gasPrice: GAS_PRICE }, function (error, result) {
+  contract.methods.getStatus().call(function (error, result) {
 
     if (error) return void showError('something went wrong with getStatus', error);
 
