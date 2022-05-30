@@ -51,9 +51,69 @@ async function initWeb3() {
         // User rejected request
       }
 
-      setError(error);
+      showError(error);
     }
+  }else{
+    showWarning('You need <a href="https://metamask.io/">Metamask</a> installed and connected to the ropsten network');
   }
+
+  var timeleft = 80;
+  var blockTimer = setInterval(function(){
+    if(timeleft <= 0){
+      timeleft = 80;
+    }
+    document.getElementById("blockProgressBar").value = 80 - timeleft;
+    timeleft -= 1;
+  }, 1000);
+
+  web3.eth.subscribe('newBlockHeaders', async function (error, result) {
+    latestBlock=await web3.eth.getBlockNumber();
+    console.log(latestBlock);
+    showError('New block number is: ' + latestBlock);
+
+    timeleft = 80;
+  });
+  
+  const chainId = 3 // Ropsten Mainnet
+  if (window.ethereum.networkVersion !== chainId) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: web3.utils.toHex(chainId) }]
+          });
+        } catch (err) {
+            // This error code indicates that the chain has not been added to MetaMask
+          if (err.code === 4902) {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainName: 'Ropsten Test Network',
+                  chainId: web3.utils.toHex(chainId),
+                  nativeCurrency: { name: 'ETH', decimals: 18, symbol: 'ETH' },
+                  rpcUrls: ['https://ropsten.infura.io/v3/']
+                }
+              ]
+            });
+          }
+        }
+  }
+
+  // detect Network account change
+  window.ethereum.on('networkChanged', function(networkId){
+        console.log('networkChanged',networkId);
+        
+        if (window.ethereum.networkVersion !== chainId) {
+
+          showError('networkChanged to not supported network - switch netwotk in Matamask');
+
+          window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: web3.utils.toHex(chainId) }]
+          });
+
+        }
+  });
 
   // web3.eth.getGasPrice().then((result) => {
   //   GAS_PRICE = result * 1.5;
@@ -266,6 +326,7 @@ function getStatus() {
     });
 
     let allBets = result[5];
+    
     cleanBets();
 
     allBets.forEach(function(element) {
