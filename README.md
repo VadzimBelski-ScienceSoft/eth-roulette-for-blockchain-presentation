@@ -17,7 +17,7 @@ Connect metamask to Ropsten testnet.
 
 #Step 2
 
-Get some test ether to your address, to do so please visit [https://faucet.egorfine.com/] or [https://faucet.metamask.io/]
+Get some test ether to your address, to do so please visit [https://goerlifaucet.com/]
 
 #Step 3
 
