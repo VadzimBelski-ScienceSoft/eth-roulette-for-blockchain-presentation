@@ -8,12 +8,12 @@ To take part in game you will need metamask extension installed.
 
 #Step 1 
 
-Connect metamask to Ropsten testnet.
+Connect metamask to Goerli testnet.
 
 - Open MetaMask extension and click on the dropdown icon of the network name.
-- Select "Ropsten Test Network" as the current network.
+- Select "Goerli Test Network" as the current network.
 
-![MetaMask Ropsten](assets/metamask.png)
+![MetaMask Goerli](assets/metamask.png)
 
 #Step 2
 
