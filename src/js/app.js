@@ -10,6 +10,14 @@ let wheelSpinCounter = 0;
 let firstBetAfterSpin = true;
 let web3Provider = null;
 let lastBlockEvent = 0;
+let provider;
+let chainId = 5; // goerli test network 
+let infuraURL = 'https://goerli.infura.io/v3/';
+
+ // Unpkg imports
+ const Web3Modal = window.Web3Modal.default;
+ const WalletConnectProvider = window.WalletConnectProvider.default;
+
 
 const betTypes = [
   'color', 'column', 'dozen',
@@ -23,39 +31,94 @@ function showWarning(msg) {
 }
 
 function init() {
-  return initWeb3();
+
+  showWarning('You need <a href="https://metamask.io/">Metamask</a> installed and connected to the ropsten network. Follow instructions on <a href="https://github.com/VadzimBelski-ScienceSoft/eth-roulette-for-blockchain-presentation">Github</a>.');
+
+  console.log("Initializing the app");
+
+  // Tell Web3modal what providers we have available.
+  // Built-in web browser provider (only one can exist as a time)
+  // like MetaMask, Brave or Opera is added automatically by Web3modal
+  const providerOptions = {
+    walletconnect: {
+      package: WalletConnectProvider,
+      options: {
+        chainId: chainId, 
+        infuraId: "f1a6a5d57420473b975975c55f5d3666"
+      }
+    }
+  };
+
+  web3Modal = new Web3Modal({
+    cacheProvider: false, // optional
+    providerOptions, // required
+  });
+
+}
+
+/**
+ * Connect wallet button pressed.
+ */
+ async function onConnect() {
+
+  console.log("Opening a dialog", web3Modal);
+  try {
+    provider = await web3Modal.connect();
+  } catch(e) {
+    console.log("Could not get a wallet connection", e);
+    return;
+  }
+
+  document.querySelector("#prepare").style.display = "none";
+  document.querySelector("#connected").style.display = "block";
+
+  await initWeb3();
+}
+
+/**
+ * Disconnect wallet button pressed.
+ */
+async function onDisconnect() {
+
+  console.log("Killing the wallet connection", provider);
+
+  // TODO: Which providers have close method?
+  if(provider.close) {
+    await provider.close();
+
+    // If the cached provider is not cleared,
+    // WalletConnect will default to the existing session
+    // and does not allow to re-scan the QR code with a new wallet.
+    // Depending on your use case you may want or want not his behavir.
+    await web3Modal.clearCachedProvider();
+    provider = null;
+  }
+
+  selectedAccount = null;
+
+  // Set the UI back to the initial state
+  document.querySelector("#prepare").style.display = "block";
+  document.querySelector("#connected").style.display = "none";
 }
 
 
+/**
+ * Main entry point.
+ */
+window.addEventListener('load', async () => {
+  document.querySelector("#btn-connect").addEventListener("click", onConnect);
+  document.querySelector("#btn-disconnect").addEventListener("click", onDisconnect);
+});
+
 async function initWeb3() {
-  // Is there an injected web3 instance?
-  if (typeof web3 !== 'undefined') {
-    web3Provider = web3.currentProvider;
-  } else {
-    // If no injected web3 instance is detected, fall back to Ganache
-    //web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
-    web3Provider = new Web3.providers.HttpProvider('https://ropsten.infura.io/v3/f1a6a5d57420473b975975c55f5d3666');
-    //web3Provider = new Web3.providers.HttpProvider('https://rpc-mumbai.matic.today');
-  }
-  web3 = new Web3(web3Provider);
 
-  if (window.ethereum) {
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  web3 = new Web3(provider);
 
-      account = accounts[0];
-      console.log(account);
+   // Get list of accounts of the connected wallet
+  const accounts = await web3.eth.getAccounts();
 
-    } catch (error) {
-      if (error.code === 4001) {
-        // User rejected request
-      }
-
-      showError(error);
-    }
-  }else{
-    showWarning('You need <a href="https://metamask.io/">Metamask</a> installed and connected to the ropsten network');
-  }
+  account = accounts[0];
+  console.log("User account is:"+account);
 
   var timeleft = 80;
   var blockTimer = setInterval(function(){
@@ -74,61 +137,65 @@ async function initWeb3() {
     timeleft = 80;
   });
   
-  const chainId = 3 // Ropsten Mainnet
-  if (window.ethereum.networkVersion !== chainId) {
+  if (provider && provider.networkVersion !== chainId) {
+        
         try {
-          await window.ethereum.request({
+          await provider.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: web3.utils.toHex(chainId) }]
           });
         } catch (err) {
             // This error code indicates that the chain has not been added to MetaMask
           if (err.code === 4902) {
-            await window.ethereum.request({
+            await provider.request({
               method: 'wallet_addEthereumChain',
               params: [
                 {
-                  chainName: 'Ropsten Test Network',
+                  chainName: 'Goerli Test Network',
                   chainId: web3.utils.toHex(chainId),
                   nativeCurrency: { name: 'ETH', decimals: 18, symbol: 'ETH' },
-                  rpcUrls: ['https://ropsten.infura.io/v3/']
+                  rpcUrls: [infuraURL]
                 }
               ]
             });
           }
         }
+
+        // detect Network account change
+        provider.on('chainChanged', function(networkId){
+          console.log('chainChanged',networkId);
+          
+          if (provider.networkVersion !== chainId) {
+
+            showError('networkChanged to not supported network - switch netwotk in Matamask');
+
+            provider.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: web3.utils.toHex(chainId) }]
+            });
+
+          }
+        });
+
+        provider.on('accountsChanged', function (accounts) {
+          // Time to reload your interface with accounts[0]!
+          console.log(accounts[0]);
+          account = accounts[0];
+          
+          getStatus();
+        });
+          
   }
 
-  // detect Network account change
-  window.ethereum.on('networkChanged', function(networkId){
-        console.log('networkChanged',networkId);
-        
-        if (window.ethereum.networkVersion !== chainId) {
-
-          showError('networkChanged to not supported network - switch netwotk in Matamask');
-
-          window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: web3.utils.toHex(chainId) }]
-          });
-
-        }
-  });
-
-  // web3.eth.getGasPrice().then((result) => {
-  //   GAS_PRICE = result * 1.5;
-  // });
-
-  initContract();
+  await initContract();
 
 }
 
-function initContract() {
+async function initContract() {
   // get abi and deployed address
   $.getJSON('Roulette.json', (data) => {
 
-    let address = '0x4c88Aa30965087a6792cCe2a7D0e7993840c29cA';// Ropsten
-    //let address = '0x3e98C5eff32A700c43b30430c509F5Dd6AF4AD25'; //Mumbai
+    let address = '0x3e98c5eff32a700c43b30430c509f5dd6af4ad25';
 
     // get contract instance
     const abi = data.abi;
@@ -139,18 +206,9 @@ function initContract() {
       from: account // default from address
     });
 
-
     initEventListeners();
 
     getStatus();
-
-    window.ethereum.on('accountsChanged', function (accounts) {
-      // Time to reload your interface with accounts[0]!
-      console.log(accounts[0]);
-      account = accounts[0];
-      
-      getStatus();
-    });
 
   });
 }
@@ -305,7 +363,11 @@ function updateHTML(value, elId) {
 /* call smart contract to get status and update UI */
 function getStatus() {
 
-  contract.methods.getStatus().call(function (error, result) {
+  console.log("entering get status");
+  
+  contract.methods.getStatus().call({from: account},function (error, result) {
+
+    console.log("get status", error, result);
 
     if (error) return void showError('something went wrong with getStatus', error);
 

@@ -71,7 +71,6 @@ contract Roulette {
         /* next time we are allowed to spin the wheel again */
         nextRoundTimestamp = block.timestamp;
         /* calculate 'random' number */
-        uint256 diff = block.difficulty;
         bytes32 hash = blockhash(block.number - 1);
         Bet memory lb = bets[bets.length - 1];
 
@@ -79,7 +78,6 @@ contract Roulette {
             keccak256(
                 abi.encodePacked(
                     block.timestamp,
-                    diff,
                     hash,
                     lb.player,
                     lb.number

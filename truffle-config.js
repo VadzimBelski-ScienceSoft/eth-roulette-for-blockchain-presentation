@@ -21,7 +21,7 @@
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 const fs = require('fs');
-const mnemonic = fs.readFileSync(".secret_ropsten").toString().trim();
+const mnemonic = fs.readFileSync(".secret_goerli").toString().trim();
 
 module.exports = {
   /**
@@ -89,6 +89,11 @@ module.exports = {
     mumbai: {
       provider: () => new HDWalletProvider(mnemonic, `https://rpc-mumbai.matic.today`),
       network_id: 80001,       // Mumbai's id
+      skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+    },
+    goerli: {
+      provider: () => new HDWalletProvider(mnemonic, `https://goerli.infura.io/v3/f1a6a5d57420473b975975c55f5d3666`),
+      network_id: 5,       // Goerli's id
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
   },
