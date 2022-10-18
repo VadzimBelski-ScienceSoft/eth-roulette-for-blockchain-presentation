@@ -32,7 +32,7 @@ function showWarning(msg) {
 
 function init() {
 
-  showWarning('You need <a href="https://metamask.io/">Metamask</a> installed and connected to the ropsten network. Follow instructions on <a href="https://github.com/VadzimBelski-ScienceSoft/eth-roulette-for-blockchain-presentation">Github</a>.');
+  showWarning('You need <a href="https://metamask.io/">Metamask</a> installed and connected to the Goerli network. Follow instructions on <a href="https://github.com/VadzimBelski-ScienceSoft/eth-roulette-for-blockchain-presentation">Github</a>.');
 
   console.log("Initializing the app");
 
