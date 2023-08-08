@@ -44,7 +44,7 @@ function init() {
       package: WalletConnectProvider,
       options: {
         chainId: chainId,
-        infuraId: "e9f67262e0c64bdf807694a470958267"
+        infuraId: "f1a6a5d57420473b975975c55f5d3666"
       }
     }
   };
@@ -195,7 +195,7 @@ async function initContract() {
   // get abi and deployed address
   $.getJSON('Roulette.json', (data) => {
 
-    let address = '0x3e98c5eff32a700c43b30430c509f5dd6af4ad25';
+    let address = '0x136276eab7874Cf3B9BF468fb5CAf549b975BDa8';
 
     // get contract instance
     const abi = data.abi;
