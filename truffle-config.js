@@ -97,7 +97,7 @@ module.exports = {
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
     sepolia: {
-      provider: () => new HDWalletProvider(mnemonic, `https://sepolia.infura.io/v3/e9f67262e0c64bdf807694a470958267`),
+      provider: () => new HDWalletProvider(mnemonic, `https://sepolia.infura.io/v3/f1a6a5d57420473b975975c55f5d3666`),
       network_id: 11155111,       // Sepolia's id
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
