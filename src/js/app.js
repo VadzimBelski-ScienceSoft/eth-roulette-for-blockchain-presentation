@@ -352,7 +352,7 @@ function spinWheel() {
 }
 
 function toEther(bigNum) {
-  return (bigNum / 1000000000000000000).toFixed(2)
+  return (Number(bigNum / BigInt(1000000000000000000))).toFixed(2)
 }
 
 function updateHTML(value, elId) {
@@ -365,42 +365,43 @@ function getStatus() {
 
   console.log("entering get status");
 
-  contract.methods.getStatus().call({from: account},function (error, result) {
+  contract.methods.getStatus().call()
+      .then(function (result) {
+        console.log("get status", result);
 
-    console.log("get status", error, result);
+        updateHTML(result[0], 'betsCount');                             // bets count
+        result[1] = toEther(result[1]);                                   // bets value
+        updateHTML(result[1], 'betsValue');
+        const now = Math.round(new Date() / 1000);                  // time until next spin
 
-    if (error) return void showError('something went wrong with getStatus', error);
+        updateHTML(result[2], 'timeUntilNextSpin');
+        result[3] = toEther(result[3]);                                   // roulette balance
+        updateHTML(result[3], 'balance');
+        result[4] = toEther(result[4]);                                   // winnings
+        updateHTML(result[4], 'winnings');
 
-    updateHTML(result[0], 'betsCount');                             // bets count
-    result[1] = toEther(result[1]);                                   // bets value
-    updateHTML(result[1], 'betsValue');
-    const now = Math.round(new Date() / 1000);                  // time until next spin
+        web3.eth.getBalance(account).then(function (balance) {
+          balance = toEther(balance);
+          updateHTML(balance, 'yourBalance');
+        })
 
-    updateHTML(result[2], 'timeUntilNextSpin');
-    result[3] = toEther(result[3]);                                   // roulette balance
-    updateHTML(result[3], 'balance');
-    result[4] = toEther(result[4]);                                   // winnings
-    updateHTML(result[4], 'winnings');
+        let allBets = result[5];
 
-    web3.eth.getBalance(account, function (error, balance) {  // player balance
-      balance = toEther(balance);
-      updateHTML(balance, 'yourBalance');
-    });
+        cleanBets();
 
-    let allBets = result[5];
+        allBets.forEach(function(element) {
 
-    cleanBets();
+          //console.log(element);
 
-    allBets.forEach(function(element) {
+          bet = { type: 5, value: parseInt(element.number), account: element.player };
 
-      //console.log(element);
+          pushBet(bet);
+        });
 
-      bet = { type: 5, value: parseInt(element.number), account: element.player };
-
-      pushBet(bet);
-    });
-
-  });
+      })
+      .catch(function(error) {
+        return void showError('something went wrong with getStatus', error);
+      });
 }
 
 document.addEventListener('DOMContentLoaded', function () {
