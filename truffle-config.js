@@ -21,7 +21,7 @@
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 const fs = require('fs');
-const mnemonic = fs.readFileSync(".secret_goerli").toString().trim();
+const mnemonic = fs.readFileSync(".secret_sepolia").toString().trim();
 
 module.exports = {
   /**
@@ -42,9 +42,9 @@ module.exports = {
     // options below to some value.
     //
     development: {
-     host: "127.0.0.1",     // Localhost (default: none)
-     port: 7545,            // Standard Ethereum port (default: none)
-     network_id: "*",       // Any network (default: none)
+      host: "127.0.0.1",     // Localhost (default: none)
+      port: 7545,            // Standard Ethereum port (default: none)
+      network_id: "*",       // Any network (default: none)
     },
     // Another network with more advanced options...
     // advanced: {
@@ -94,6 +94,11 @@ module.exports = {
     goerli: {
       provider: () => new HDWalletProvider(mnemonic, `https://goerli.infura.io/v3/f1a6a5d57420473b975975c55f5d3666`),
       network_id: 5,       // Goerli's id
+      skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+    },
+    sepolia: {
+      provider: () => new HDWalletProvider(mnemonic, `https://sepolia.infura.io/v3/f1a6a5d57420473b975975c55f5d3666`),
+      network_id: 11155111,       // Sepolia's id
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
   },

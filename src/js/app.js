@@ -11,12 +11,12 @@ let firstBetAfterSpin = true;
 let web3Provider = null;
 let lastBlockEvent = 0;
 let provider;
-let chainId = 5; // goerli test network 
-let infuraURL = 'https://goerli.infura.io/v3/';
+let chainId = 11155111; // sepolia test network
+let infuraURL = 'https://sepolia.infura.io/v3/';
 
- // Unpkg imports
- const Web3Modal = window.Web3Modal.default;
- const WalletConnectProvider = window.WalletConnectProvider.default;
+// Unpkg imports
+const Web3Modal = window.Web3Modal.default;
+const WalletConnectProvider = window.WalletConnectProvider.default;
 
 
 const betTypes = [
@@ -32,7 +32,7 @@ function showWarning(msg) {
 
 function init() {
 
-  showWarning('You need <a href="https://metamask.io/">Metamask</a> installed and connected to the Goerli network. Follow instructions on <a href="https://github.com/VadzimBelski-ScienceSoft/eth-roulette-for-blockchain-presentation">Github</a>.');
+  showWarning('You need <a href="https://metamask.io/">Metamask</a> installed and connected to the Sepolia network. Follow instructions on <a href="https://github.com/VadzimBelski-ScienceSoft/eth-roulette-for-blockchain-presentation">Github</a>.');
 
   console.log("Initializing the app");
 
@@ -43,7 +43,7 @@ function init() {
     walletconnect: {
       package: WalletConnectProvider,
       options: {
-        chainId: chainId, 
+        chainId: chainId,
         infuraId: "f1a6a5d57420473b975975c55f5d3666"
       }
     }
@@ -59,7 +59,7 @@ function init() {
 /**
  * Connect wallet button pressed.
  */
- async function onConnect() {
+async function onConnect() {
 
   console.log("Opening a dialog", web3Modal);
   try {
@@ -114,7 +114,7 @@ async function initWeb3() {
 
   web3 = new Web3(provider);
 
-   // Get list of accounts of the connected wallet
+  // Get list of accounts of the connected wallet
   const accounts = await web3.eth.getAccounts();
 
   account = accounts[0];
@@ -136,55 +136,55 @@ async function initWeb3() {
 
     timeleft = 80;
   });
-  
+
   if (provider && provider.networkVersion !== chainId) {
-        
-        try {
-          await provider.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: web3.utils.toHex(chainId) }]
-          });
-        } catch (err) {
-            // This error code indicates that the chain has not been added to MetaMask
-          if (err.code === 4902) {
-            await provider.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainName: 'Goerli Test Network',
-                  chainId: web3.utils.toHex(chainId),
-                  nativeCurrency: { name: 'ETH', decimals: 18, symbol: 'ETH' },
-                  rpcUrls: [infuraURL]
-                }
-              ]
-            });
-          }
-        }
 
-        // detect Network account change
-        provider.on('chainChanged', function(networkId){
-          console.log('chainChanged',networkId);
-          
-          if (provider.networkVersion !== chainId) {
+    try {
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: web3.utils.toHex(chainId) }]
+      });
+    } catch (err) {
+      // This error code indicates that the chain has not been added to MetaMask
+      if (err.code === 4902) {
+        await provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [
+            {
+              chainName: 'Sepolia Test Network',
+              chainId: web3.utils.toHex(chainId),
+              nativeCurrency: { name: 'SepoliaETH', decimals: 18, symbol: 'SepoliaETH' },
+              rpcUrls: [infuraURL]
+            }
+          ]
+        });
+      }
+    }
 
-            showError('networkChanged to not supported network - switch netwotk in Matamask');
+    // detect Network account change
+    provider.on('chainChanged', function(networkId){
+      console.log('chainChanged',networkId);
 
-            provider.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: web3.utils.toHex(chainId) }]
-            });
+      if (provider.networkVersion !== chainId) {
 
-          }
+        showError('networkChanged to not supported network - switch netwotk in Matamask');
+
+        provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: web3.utils.toHex(chainId) }]
         });
 
-        provider.on('accountsChanged', function (accounts) {
-          // Time to reload your interface with accounts[0]!
-          console.log(accounts[0]);
-          account = accounts[0];
-          
-          getStatus();
-        });
-          
+      }
+    });
+
+    provider.on('accountsChanged', function (accounts) {
+      // Time to reload your interface with accounts[0]!
+      console.log(accounts[0]);
+      account = accounts[0];
+
+      getStatus();
+    });
+
   }
 
   await initContract();
@@ -195,7 +195,7 @@ async function initContract() {
   // get abi and deployed address
   $.getJSON('Roulette.json', (data) => {
 
-    let address = '0x3e98c5eff32a700c43b30430c509f5dd6af4ad25';
+    let address = '0xC68Cfd0A32271313182B77bb2Cd78A5B389D52e2';
 
     // get contract instance
     const abi = data.abi;
@@ -209,7 +209,6 @@ async function initContract() {
     initEventListeners();
 
     getStatus();
-
   });
 }
 
@@ -221,16 +220,15 @@ function initEventListeners() {
     bet = { type: 5, value: parseInt(res.returnValues._value) , account: res.returnValues._from};
 
     pushBet(bet);
-    
+
     getStatus();
-    
   });
 
   /* listening for events from the smart contract */
   contract.events.RandomNumber({}, function (err, res) {
 
-    if (res.blockNumber > lastBlockEvent) {               
-      
+    if (res.blockNumber > lastBlockEvent) {
+
       /* prevent duplicated events */
       /* 'random' number generated by the smart contract */
       const oneRandomNumber = parseInt(res.returnValues.number);
@@ -285,6 +283,13 @@ function hideBets() {
   }
 }
 
+function hideWinners() {
+  var div = document.getElementById('winnersList');
+  while (div.firstChild) {
+    div.removeChild(div.firstChild);
+  }
+}
+
 function cleanBets() {
   bets.length = 0;
   hideBets();
@@ -308,6 +313,23 @@ function placeBet() {
   }
 }
 
+function showWinners(winnersList) {
+  if (!winnersList) {
+    return;
+  }
+
+  winnersList.forEach(function(element) {
+    console.log('sss' , element)
+
+    const div = document.getElementById('winnersList');
+    let childDiv = document.createElement('li');
+
+    childDiv.innerHTML = '<b>Address:</b> ' + element.player + ' <b>Amount:</b> ' + toEther(element.amount) + ' <b>Date:</b> ' + new Date(Number(element.timestamp) * 1000).toLocaleString() ;
+
+    div.appendChild(childDiv);
+  });
+}
+
 function pushBet(hash) {
 
   if (firstBetAfterSpin) {
@@ -315,7 +337,7 @@ function pushBet(hash) {
   }
 
   firstBetAfterSpin = false;
-  
+
   bets.push(hash);
 
   printBet(hash);
@@ -352,7 +374,7 @@ function spinWheel() {
 }
 
 function toEther(bigNum) {
-  return (bigNum / 1000000000000000000).toFixed(2)
+  return (Number(bigNum / BigInt(1000000000000000000))).toFixed(2)
 }
 
 function updateHTML(value, elId) {
@@ -364,43 +386,59 @@ function updateHTML(value, elId) {
 function getStatus() {
 
   console.log("entering get status");
-  
-  contract.methods.getStatus().call({from: account},function (error, result) {
 
-    console.log("get status", error, result);
+  contract.methods.getStatus().call()
+      .then(function (result) {
+        console.log("get status", result);
 
-    if (error) return void showError('something went wrong with getStatus', error);
+        updateHTML(result[0], 'betsCount');                             // bets count
+        result[1] = toEther(result[1]);                                   // bets value
+        updateHTML(result[1], 'betsValue');
+        const now = Math.round(new Date() / 1000);                  // time until next spin
 
-    updateHTML(result[0], 'betsCount');                             // bets count
-    result[1] = toEther(result[1]);                                   // bets value
-    updateHTML(result[1], 'betsValue');
-    const now = Math.round(new Date() / 1000);                  // time until next spin
+        updateHTML(result[2], 'timeUntilNextSpin');
+        result[3] = toEther(result[3]);                                   // roulette balance
+        updateHTML(result[3], 'balance');
+        result[4] = toEther(result[4]);                                   // winnings
+        updateHTML(result[4], 'winnings');
 
-    updateHTML(result[2], 'timeUntilNextSpin');
-    result[3] = toEther(result[3]);                                   // roulette balance
-    updateHTML(result[3], 'balance');
-    result[4] = toEther(result[4]);                                   // winnings
-    updateHTML(result[4], 'winnings');
+        web3.eth.getBalance(account).then(function (balance) {
+          balance = toEther(balance);
+          updateHTML(balance, 'yourBalance');
+        })
 
-    web3.eth.getBalance(account, function (error, balance) {  // player balance
-      balance = toEther(balance);
-      updateHTML(balance, 'yourBalance');
-    });
+        let allBets = result[5];
 
-    let allBets = result[5];
-    
-    cleanBets();
+        cleanBets();
 
-    allBets.forEach(function(element) {
+        allBets.forEach(function(element) {
 
-      //console.log(element);
+          //console.log(element);
 
-      bet = { type: 5, value: parseInt(element.number), account: element.player };
+          bet = { type: 5, value: parseInt(element.number), account: element.player };
 
-      pushBet(bet);
-    });
+          pushBet(bet);
+        });
+      })
+      .catch(function(error) {
+        return void showError('something went wrong with getStatus', error);
+      });
 
-  });
+  getWinners()
+}
+
+function getWinners() {
+  console.log('getting winners');
+
+  contract.methods.getWinners().call()
+      .then(function (result) {
+        console.log("winners", result);
+        hideWinners();
+        showWinners(result)
+      })
+      .catch(function(error) {
+        return void showError('something went wrong with getWinners', error);
+      });
 }
 
 document.addEventListener('DOMContentLoaded', function () {

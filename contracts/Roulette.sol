@@ -8,10 +8,17 @@ contract Roulette {
     mapping(address => uint256) winnings;
     uint8[] payouts;
     uint8[] numberRange;
+    Winner[] public winners;
 
     struct Bet {
         address player;
         uint8 number;
+    }
+
+    struct Winner {
+        address player;
+        uint256 timestamp;
+        uint256 amount;
     }
 
     Bet[] public bets;
@@ -25,6 +32,12 @@ contract Roulette {
     event RandomNumber(uint256 number);
 
     event MadeBet(address indexed _from, uint256 _value);
+
+    event Won(
+        address player,
+        uint256 indexed date,
+        uint256 indexed amount
+    );
 
     function getStatus()
         public
@@ -52,6 +65,16 @@ contract Roulette {
             winnings[msg.sender], // winnings of player
             b
         );
+    }
+
+    function getWinners() public view returns (Winner[] memory) {
+        Winner[] memory w = new Winner[](winners.length);
+
+        for (uint i = 0; i < winners.length; i++) {
+            w[i] = winners[i];
+        }
+
+        return w;
     }
 
     function bet(uint8 number) public payable {
@@ -94,8 +117,12 @@ contract Roulette {
             }
 
             if (won) {
+                winners.push(Winner({player: b.player, timestamp : block.timestamp, amount: address(this).balance}));
+
                 winnings[b.player] += address(this).balance;
                 payable(b.player).transfer(address(this).balance);
+
+                emit Won(b.player, block.timestamp, address(this).balance);
             }
         }
 
