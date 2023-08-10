@@ -195,7 +195,7 @@ async function initContract() {
   // get abi and deployed address
   $.getJSON('Roulette.json', (data) => {
 
-    let address = '0x136276eab7874Cf3B9BF468fb5CAf549b975BDa8';
+    let address = '0xC68Cfd0A32271313182B77bb2Cd78A5B389D52e2';
 
     // get contract instance
     const abi = data.abi;
@@ -209,7 +209,6 @@ async function initContract() {
     initEventListeners();
 
     getStatus();
-
   });
 }
 
@@ -223,7 +222,6 @@ function initEventListeners() {
     pushBet(bet);
 
     getStatus();
-
   });
 
   /* listening for events from the smart contract */
@@ -285,6 +283,13 @@ function hideBets() {
   }
 }
 
+function hideWinners() {
+  var div = document.getElementById('winnersList');
+  while (div.firstChild) {
+    div.removeChild(div.firstChild);
+  }
+}
+
 function cleanBets() {
   bets.length = 0;
   hideBets();
@@ -306,6 +311,23 @@ function placeBet() {
 
     getStatus();
   }
+}
+
+function showWinners(winnersList) {
+  if (!winnersList) {
+    return;
+  }
+
+  winnersList.forEach(function(element) {
+    console.log('sss' , element)
+
+    const div = document.getElementById('winnersList');
+    let childDiv = document.createElement('li');
+
+    childDiv.innerHTML = '<b>Address:</b> ' + element.player + ' <b>Amount:</b> ' + toEther(element.amount) + ' <b>Date:</b> ' + new Date(Number(element.timestamp) * 1000).toLocaleString() ;
+
+    div.appendChild(childDiv);
+  });
 }
 
 function pushBet(hash) {
@@ -397,10 +419,25 @@ function getStatus() {
 
           pushBet(bet);
         });
-
       })
       .catch(function(error) {
         return void showError('something went wrong with getStatus', error);
+      });
+
+  getWinners()
+}
+
+function getWinners() {
+  console.log('getting winners');
+
+  contract.methods.getWinners().call()
+      .then(function (result) {
+        console.log("winners", result);
+        hideWinners();
+        showWinners(result)
+      })
+      .catch(function(error) {
+        return void showError('something went wrong with getWinners', error);
       });
 }
 
